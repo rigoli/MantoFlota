@@ -54,7 +54,6 @@ pnpm dev
 ## Documentación
 
 - Entrega académica Etapa 2: [docs/ETAPA2.md](docs/ETAPA2.md)
-- Agentes / convenciones: [CLAUDE.md](CLAUDE.md) y carpeta `.claude/`
 
 ## Nombre del proyecto
 

@@ -162,5 +162,3 @@ El código fuente completo del proyecto se encuentra en el repositorio:
 - **Frontend (Next.js):** carpeta [`frontend/`](../frontend/), páginas en [`frontend/app/`](../frontend/app/).
 - Dependencias backend: [`backend/pyproject.toml`](../backend/pyproject.toml).
 - Dependencias frontend: [`frontend/package.json`](../frontend/package.json).
-
-*(Adjuntar también el archivo exportado o archivo `.zip` según indique tu docente.)*
