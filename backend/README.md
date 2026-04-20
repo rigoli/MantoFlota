@@ -35,7 +35,7 @@ Si una unidad ya tiene historial, el seed **no duplica** mantenimientos (idempot
 
 ## Tests
 
-Requiere MAMP MySQL activo en el puerto **8889**.
+Requiere MySQL activo en el puerto **8889**.
 
 ```bash
 pytest -W error --cov=app --cov-fail-under=100
