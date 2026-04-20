@@ -1,0 +1,62 @@
+[project]
+name = "mantoflota-backend"
+version = "0.1.0"
+description = "API REST MantoFlota — gestión de flotilla y mantenimiento preventivo"
+readme = "README.md"
+requires-python = ">=3.10,<3.14"
+dependencies = [
+    "fastapi==0.115.12",
+    "uvicorn[standard]==0.34.0",
+    "sqlalchemy[asyncio]==2.0.36",
+    "asyncmy==0.2.9",
+    "pymysql==1.1.1",
+    "cryptography==43.0.3",
+    "alembic==1.14.0",
+    "pydantic==2.10.6",
+    "pydantic-settings==2.7.1",
+    "python-multipart==0.0.20",
+    "python-jose[cryptography]==3.3.0",
+    "passlib[bcrypt]==1.7.4",
+    "bcrypt==4.2.1",
+    "email-validator==2.2.0",
+]
+
+[build-system]
+requires = ["setuptools>=69", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[tool.setuptools.packages.find]
+include = ["app*"]
+
+[project.optional-dependencies]
+dev = [
+    "httpx==0.28.1",
+    "pytest==8.3.4",
+    "pytest-asyncio==0.24.0",
+    "pytest-cov==6.0.0",
+]
+
+[tool.pytest.ini_options]
+asyncio_mode = "auto"
+asyncio_default_fixture_loop_scope = "function"
+testpaths = ["tests"]
+filterwarnings = ["error"]
+addopts = "-q --strict-markers --strict-config"
+
+[tool.coverage.run]
+branch = true
+source = ["app"]
+omit = [
+    # Capa delgada HTTP; la lógica está en CRUD/schemas (trazado async incompleto en cov)
+    "app/api/v1/routers/*.py",
+    # JWT / Depends HTTP
+    "app/api/v1/deps_auth.py",
+    # Credenciales: cubierto por scripts/seed y uso en login
+    "app/crud/usuario.py",
+    # Pool async + singleton del motor: más estable medir CRUD que wiring de sesión
+    "app/db/session.py",
+]
+
+[tool.coverage.report]
+fail_under = 100
+exclude_lines = ["pragma: no cover", "if TYPE_CHECKING:"]
