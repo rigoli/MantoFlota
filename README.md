@@ -1,4 +1,4 @@
-# MantoFlota — Etapa 2 (Fullstack)
+# MantoFlota
 
 Aplicación para **gestionar el mantenimiento preventivo** de una flotilla interna: unidades, historial de servicios y estado operativo.
 
