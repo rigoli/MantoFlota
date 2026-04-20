@@ -54,7 +54,3 @@ pnpm dev
 ## Documentación
 
 - Entrega académica Etapa 2: [docs/ETAPA2.md](docs/ETAPA2.md)
-
-## Nombre del proyecto
-
-Usar **MantoFlota** de forma consistente en portada y contenido (evitar “MantoCar”).
