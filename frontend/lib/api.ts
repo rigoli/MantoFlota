@@ -25,6 +25,36 @@ export class ApiError extends Error {
   }
 }
 
+/** Límite máximo alineado con el API para respaldo global de mantenimientos. */
+export const EXPORT_MANTENIMIENTOS_LIMIT = 500;
+
+function exportFileStamp(): string {
+  return new Date().toISOString().slice(0, 19).replace(/[:T]/g, "-");
+}
+
+async function downloadAuthenticatedBlob(
+  pathWithQuery: string,
+  filename: string,
+): Promise<void> {
+  const token = getAuthToken();
+  const res = await fetch(`${API_BASE}${pathWithQuery}`, {
+    headers: {
+      ...(token ? { Authorization: `Bearer ${token}` } : {}),
+    },
+    cache: "no-store",
+  });
+  if (!res.ok) {
+    throw new ApiError(await parseError(res), res.status);
+  }
+  const blob = await res.blob();
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement("a");
+  a.href = url;
+  a.download = filename;
+  a.click();
+  URL.revokeObjectURL(url);
+}
+
 async function parseError(res: Response): Promise<string> {
   try {
     const j = (await res.json()) as { detail?: unknown };
@@ -92,6 +122,66 @@ export function getDashboardInicio(): Promise<DashboardInicio> {
 
 export function listUnidades(): Promise<Unidad[]> {
   return fetchJson<Unidad[]>("/api/v1/unidades");
+}
+
+/** Descarga respaldo JSON de todas las unidades (mismo esquema que listado). */
+export async function downloadUnidadesJsonExport(): Promise<void> {
+  const token = getAuthToken();
+  const res = await fetch(`${API_BASE}/api/v1/export/unidades`, {
+    headers: {
+      ...(token ? { Authorization: `Bearer ${token}` } : {}),
+    },
+    cache: "no-store",
+  });
+  if (!res.ok) {
+    throw new ApiError(await parseError(res), res.status);
+  }
+  const data: unknown = await res.json();
+  const text = JSON.stringify(data, null, 2);
+  const blob = new Blob([text], { type: "application/json;charset=utf-8" });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement("a");
+  a.href = url;
+  a.download = `mantoflota-unidades-${exportFileStamp()}.json`;
+  a.click();
+  URL.revokeObjectURL(url);
+}
+
+/** CSV de todas las unidades (UTF-8 con BOM). */
+export async function downloadUnidadesCsvExport(): Promise<void> {
+  await downloadAuthenticatedBlob(
+    "/api/v1/export/unidades/csv",
+    `mantoflota-unidades-${exportFileStamp()}.csv`,
+  );
+}
+
+/** JSON del historial global (hasta ``EXPORT_MANTENIMIENTOS_LIMIT`` filas). */
+export async function downloadMantenimientosJsonExport(): Promise<void> {
+  const q = new URLSearchParams({
+    limit: String(EXPORT_MANTENIMIENTOS_LIMIT),
+  });
+  const data = await fetchJson<MantenimientoListItem[]>(
+    `/api/v1/export/mantenimientos?${q}`,
+  );
+  const text = JSON.stringify(data, null, 2);
+  const blob = new Blob([text], { type: "application/json;charset=utf-8" });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement("a");
+  a.href = url;
+  a.download = `mantoflota-mantenimientos-${exportFileStamp()}.json`;
+  a.click();
+  URL.revokeObjectURL(url);
+}
+
+/** CSV del historial global (mismo límite que JSON). */
+export async function downloadMantenimientosCsvExport(): Promise<void> {
+  const q = new URLSearchParams({
+    limit: String(EXPORT_MANTENIMIENTOS_LIMIT),
+  });
+  await downloadAuthenticatedBlob(
+    `/api/v1/export/mantenimientos/csv?${q}`,
+    `mantoflota-mantenimientos-${exportFileStamp()}.csv`,
+  );
 }
 
 export function getUnidad(id: number): Promise<Unidad> {

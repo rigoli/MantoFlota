@@ -55,6 +55,16 @@ export function SiteHeader() {
           MantoFlota
         </Link>
         <nav className="flex flex-wrap items-center gap-2">
+          <Link
+            href="/"
+            className={cn(
+              buttonVariants({
+                variant: pathname === "/" ? "secondary" : "ghost",
+              }),
+            )}
+          >
+            Inicio
+          </Link>
           {me ? (
             <>
               <Link

@@ -1,0 +1,21 @@
+
+> frontend@0.1.0 test /Users/rigo/Documents/Develop/MantoFlota/frontend
+> vitest run
+
+
+ RUN  v4.1.4 /Users/rigo/Documents/Develop/MantoFlota/frontend
+
+
+ Test Files  2 passed (2)
+      Tests  4 passed (4)
+   Start at  20:03:49
+   Duration  526ms (transform 51ms, setup 80ms, import 99ms, tests 68ms, environment 515ms)
+
+
+> frontend@0.1.0 lint /Users/rigo/Documents/Develop/MantoFlota/frontend
+> eslint .
+
+
+> frontend@0.1.0 typecheck /Users/rigo/Documents/Develop/MantoFlota/frontend
+> tsc --noEmit
+

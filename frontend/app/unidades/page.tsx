@@ -2,6 +2,7 @@
 
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import Link from "next/link";
+import * as React from "react";
 import { toast } from "sonner";
 
 import {
@@ -28,8 +29,11 @@ import {
 import * as api from "@/lib/api";
 import { cn } from "@/lib/utils";
 
+type ExportKey = "json" | "csv" | null;
+
 export default function UnidadesPage() {
   const qc = useQueryClient();
+  const [exporting, setExporting] = React.useState<ExportKey>(null);
   const q = useQuery({
     queryKey: ["unidades"],
     queryFn: api.listUnidades,
@@ -69,12 +73,54 @@ export default function UnidadesPage() {
               : `${rows.length} unidad(es) en el sistema.`}
           </p>
         </div>
-        <Link
-          href="/unidades/nueva"
-          className={cn(buttonVariants({ variant: "default" }))}
-        >
-          Nueva unidad
-        </Link>
+        <div className="flex flex-wrap gap-2">
+          <Button
+            type="button"
+            variant="secondary"
+            disabled={exporting !== null || q.isLoading}
+            onClick={async () => {
+              setExporting("json");
+              try {
+                await api.downloadUnidadesJsonExport();
+                toast.success("Archivo JSON descargado");
+              } catch (e: unknown) {
+                const msg =
+                  e instanceof api.ApiError ? e.message : "No se pudo exportar";
+                toast.error(msg);
+              } finally {
+                setExporting(null);
+              }
+            }}
+          >
+            {exporting === "json" ? "Exportando…" : "Exportar JSON"}
+          </Button>
+          <Button
+            type="button"
+            variant="outline"
+            disabled={exporting !== null || q.isLoading}
+            onClick={async () => {
+              setExporting("csv");
+              try {
+                await api.downloadUnidadesCsvExport();
+                toast.success("Archivo CSV descargado");
+              } catch (e: unknown) {
+                const msg =
+                  e instanceof api.ApiError ? e.message : "No se pudo exportar";
+                toast.error(msg);
+              } finally {
+                setExporting(null);
+              }
+            }}
+          >
+            {exporting === "csv" ? "Exportando…" : "Exportar CSV"}
+          </Button>
+          <Link
+            href="/unidades/nueva"
+            className={cn(buttonVariants({ variant: "default" }))}
+          >
+            Nueva unidad
+          </Link>
+        </div>
       </div>
 
       <div className="rounded-md border">

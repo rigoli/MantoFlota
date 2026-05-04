@@ -31,6 +31,7 @@ import {
 } from "@/components/ui/card";
 import {
   Dialog,
+  DialogClose,
   DialogContent,
   DialogFooter,
   DialogHeader,
@@ -61,11 +62,26 @@ import {
   mantenimientoSchema,
   unidadCreateSchema,
 } from "@/lib/schemas";
+import type { Mantenimiento } from "@/lib/types";
 import { cn } from "@/lib/utils";
 
 type UnidadForm = z.infer<typeof unidadCreateSchema>;
 type KmForm = z.infer<typeof kilometrajeSchema>;
 type MantForm = z.infer<typeof mantenimientoSchema>;
+
+function mantenimientoToFormValues(m: Mantenimiento): MantForm {
+  const raw = m.fecha_servicio;
+  const fecha = raw.slice(0, 10);
+  return {
+    tipo: m.tipo,
+    fecha_servicio: fecha,
+    kilometraje: m.kilometraje,
+    costo: m.costo,
+    proveedor: m.proveedor,
+    observaciones: m.observaciones ?? "",
+    responsable: m.responsable,
+  };
+}
 
 export function UnidadClient({ id }: { id: number }) {
   const router = useRouter();
@@ -126,11 +142,32 @@ export function UnidadClient({ id }: { id: number }) {
     },
   });
 
+  const [editMant, setEditMant] = React.useState<Mantenimiento | null>(null);
+
+  const mantEditForm = useForm<MantForm>({
+    resolver: zodResolver(mantenimientoSchema),
+    defaultValues: {
+      tipo: "",
+      fecha_servicio: "",
+      kilometraje: 0,
+      costo: 0,
+      proveedor: "",
+      observaciones: "",
+      responsable: "",
+    },
+  });
+
   React.useEffect(() => {
     if (uq.data) {
       kmForm.reset({ kilometraje_actual: uq.data.kilometraje_actual });
     }
   }, [uq.data, kmForm]);
+
+  React.useEffect(() => {
+    if (editMant) {
+      mantEditForm.reset(mantenimientoToFormValues(editMant));
+    }
+  }, [editMant, mantEditForm]);
 
   const saveUnidad = useMutation({
     mutationFn: (body: UnidadForm) => api.updateUnidad(id, body),
@@ -175,6 +212,7 @@ export function UnidadClient({ id }: { id: number }) {
       toast.success("Mantenimiento registrado");
       mantForm.reset();
       await qc.invalidateQueries({ queryKey: ["mantenimientos", id] });
+      await qc.invalidateQueries({ queryKey: ["mantenimientos-global"] });
     },
     onError: (e: Error) => toast.error(e.message),
   });
@@ -184,6 +222,35 @@ export function UnidadClient({ id }: { id: number }) {
     onSuccess: async () => {
       toast.success("Mantenimiento eliminado");
       await qc.invalidateQueries({ queryKey: ["mantenimientos", id] });
+      await qc.invalidateQueries({ queryKey: ["mantenimientos-global"] });
+    },
+    onError: (e: Error) => toast.error(e.message),
+  });
+
+  const updateMant = useMutation({
+    mutationFn: ({
+      mid,
+      body,
+    }: {
+      mid: number;
+      body: MantForm;
+    }) =>
+      api.updateMantenimiento(mid, {
+        tipo: body.tipo,
+        fecha_servicio: body.fecha_servicio,
+        kilometraje: body.kilometraje,
+        costo: body.costo,
+        proveedor: body.proveedor,
+        observaciones: body.observaciones?.trim()
+          ? body.observaciones
+          : null,
+        responsable: body.responsable,
+      }),
+    onSuccess: async () => {
+      toast.success("Mantenimiento actualizado");
+      setEditMant(null);
+      await qc.invalidateQueries({ queryKey: ["mantenimientos", id] });
+      await qc.invalidateQueries({ queryKey: ["mantenimientos-global"] });
     },
     onError: (e: Error) => toast.error(e.message),
   });
@@ -458,6 +525,15 @@ export function UnidadClient({ id }: { id: number }) {
                     <TableCell>{m.kilometraje}</TableCell>
                     <TableCell>{Number(m.costo).toFixed(2)}</TableCell>
                     <TableCell className="text-right">
+                      <div className="flex flex-wrap justify-end gap-2">
+                        <Button
+                          type="button"
+                          size="sm"
+                          variant="outline"
+                          onClick={() => setEditMant(m)}
+                        >
+                          Editar
+                        </Button>
                       <AlertDialog>
                         <AlertDialogTrigger
                           render={
@@ -486,6 +562,7 @@ export function UnidadClient({ id }: { id: number }) {
                           </AlertDialogFooter>
                         </AlertDialogContent>
                       </AlertDialog>
+                      </div>
                     </TableCell>
                   </TableRow>
                 ))}
@@ -494,6 +571,84 @@ export function UnidadClient({ id }: { id: number }) {
           )}
         </CardContent>
       </Card>
+
+      <Dialog
+        open={editMant !== null}
+        onOpenChange={(open) => {
+          if (!open) setEditMant(null);
+        }}
+      >
+        <DialogContent className="max-h-[90vh] max-w-lg overflow-y-auto sm:max-w-lg">
+          <DialogHeader>
+            <DialogTitle>Editar mantenimiento</DialogTitle>
+          </DialogHeader>
+          {editMant ? (
+            <form
+              className="space-y-3"
+              onSubmit={mantEditForm.handleSubmit((v) =>
+                updateMant.mutate({ mid: editMant.id, body: v }),
+              )}
+            >
+              <div className="grid gap-2">
+                <Label>Tipo</Label>
+                <Input {...mantEditForm.register("tipo")} />
+              </div>
+              <div className="grid gap-2">
+                <Label>Fecha</Label>
+                <Input
+                  type="date"
+                  {...mantEditForm.register("fecha_servicio")}
+                />
+              </div>
+              <div className="grid gap-2 sm:grid-cols-2">
+                <div className="grid gap-2">
+                  <Label>Kilometraje</Label>
+                  <Input
+                    type="number"
+                    {...mantEditForm.register("kilometraje", {
+                      valueAsNumber: true,
+                    })}
+                  />
+                </div>
+                <div className="grid gap-2">
+                  <Label>Costo</Label>
+                  <Input
+                    type="number"
+                    step="0.01"
+                    {...mantEditForm.register("costo", {
+                      valueAsNumber: true,
+                    })}
+                  />
+                </div>
+              </div>
+              <div className="grid gap-2">
+                <Label>Proveedor</Label>
+                <Input {...mantEditForm.register("proveedor")} />
+              </div>
+              <div className="grid gap-2">
+                <Label>Responsable</Label>
+                <Input {...mantEditForm.register("responsable")} />
+              </div>
+              <div className="grid gap-2">
+                <Label>Observaciones</Label>
+                <Textarea {...mantEditForm.register("observaciones")} />
+              </div>
+              <DialogFooter className="gap-2 sm:justify-between">
+                <DialogClose
+                  render={
+                    <Button type="button" variant="ghost" size="sm">
+                      Cancelar
+                    </Button>
+                  }
+                />
+                <Button type="submit" disabled={updateMant.isPending}>
+                  Guardar cambios
+                </Button>
+              </DialogFooter>
+            </form>
+          ) : null}
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }

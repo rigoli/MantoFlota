@@ -42,7 +42,7 @@ describe("SiteHeader", () => {
     vi.unstubAllGlobals();
   });
 
-  it("muestra marca y enlaces Unidades / Mantenimientos con sesión", async () => {
+  it("muestra marca y enlaces Inicio / Unidades / Mantenimientos con sesión", async () => {
     localStorage.setItem(STORAGE_KEY, "token-demo");
     render(<SiteHeader />);
 
@@ -52,11 +52,28 @@ describe("SiteHeader", () => {
         "/unidades",
       );
     });
+    expect(screen.getByRole("link", { name: "Inicio" })).toHaveAttribute(
+      "href",
+      "/",
+    );
     expect(screen.getByRole("link", { name: "Mantenimientos" })).toHaveAttribute(
       "href",
       "/mantenimientos",
     );
     expect(screen.queryByRole("link", { name: "Nueva unidad" })).toBeNull();
     expect(screen.getByText("MantoFlota")).toBeInTheDocument();
+  });
+
+  it("muestra Inicio y Entrar sin sesión", async () => {
+    render(<SiteHeader />);
+
+    await waitFor(() => {
+      expect(screen.getByRole("link", { name: "Entrar" })).toBeInTheDocument();
+    });
+    expect(screen.getByRole("link", { name: "Inicio" })).toHaveAttribute(
+      "href",
+      "/",
+    );
+    expect(screen.queryByRole("link", { name: "Unidades" })).toBeNull();
   });
 });

@@ -1,0 +1,36 @@
+cd backend && ./.venv/bin/pytest -W error --cov=app --cov-fail-under=100 -q
+........................................................................ [ 75%]
+.......................                                                  [100%]
+
+--------- coverage: platform darwin, python 3.10.14-final-0 ----------
+Name                           Stmts   Miss Branch BrPart  Cover
+----------------------------------------------------------------
+app/__init__.py                    0      0      0      0   100%
+app/api/__init__.py                0      0      0      0   100%
+app/api/v1/__init__.py             0      0      0      0   100%
+app/api/v1/deps.py                 5      0      0      0   100%
+app/api/v1/router.py               8      0      0      0   100%
+app/core/__init__.py               0      0      0      0   100%
+app/core/config.py                26      0      6      0   100%
+app/core/security.py              21      0      2      0   100%
+app/crud/__init__.py               0      0      0      0   100%
+app/crud/dashboard.py             36      0      8      0   100%
+app/crud/mantenimiento.py         56      0     18      0   100%
+app/crud/unidad.py                60      0     20      0   100%
+app/db/base.py                     3      0      0      0   100%
+app/main.py                       15      0      0      0   100%
+app/models/__init__.py             4      0      0      0   100%
+app/models/enums.py                9      0      0      0   100%
+app/models/mantenimiento.py       21      0      0      0   100%
+app/models/unidad.py              23      0      0      0   100%
+app/models/usuario.py             17      0      0      0   100%
+app/schemas/__init__.py            0      0      0      0   100%
+app/schemas/auth.py               23      0      2      0   100%
+app/schemas/dashboard.py          25      0      0      0   100%
+app/schemas/mantenimiento.py      55      0     14      0   100%
+app/schemas/unidad.py             30      0      0      0   100%
+app/validators.py                 64      0     32      0   100%
+----------------------------------------------------------------
+TOTAL                            501      0    102      0   100%
+
+Required test coverage of 100% reached. Total coverage: 100.00%

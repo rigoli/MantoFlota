@@ -2,6 +2,8 @@
 
 import { useQuery } from "@tanstack/react-query";
 import Link from "next/link";
+import * as React from "react";
+import { toast } from "sonner";
 
 import {
   Card,
@@ -18,10 +20,13 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import * as api from "@/lib/api";
-import { buttonVariants } from "@/components/ui/button";
+import { Button, buttonVariants } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 
+type ExportKey = "json" | "csv" | null;
+
 export default function MantenimientosPage() {
+  const [exporting, setExporting] = React.useState<ExportKey>(null);
   const q = useQuery({
     queryKey: ["mantenimientos-global"],
     queryFn: () => api.listMantenimientosGlobal(200),
@@ -44,12 +49,64 @@ export default function MantenimientosPage() {
 
   return (
     <div className="flex flex-col gap-6">
-      <div>
-        <h1 className="text-2xl font-semibold tracking-tight">Mantenimientos</h1>
-        <p className="mt-1 text-sm text-muted-foreground">
-          Historial de servicios registrados en toda la flota (más recientes
-          primero).
-        </p>
+      <div className="flex flex-wrap items-start justify-between gap-4">
+        <div>
+          <h1 className="text-2xl font-semibold tracking-tight">
+            Mantenimientos
+          </h1>
+          <p className="mt-1 text-sm text-muted-foreground">
+            Historial de servicios registrados en toda la flota (más recientes
+            primero).
+          </p>
+        </div>
+        <div className="flex flex-wrap gap-2">
+          <Button
+            type="button"
+            variant="secondary"
+            size="sm"
+            disabled={exporting !== null || q.isLoading}
+            onClick={async () => {
+              setExporting("json");
+              try {
+                await api.downloadMantenimientosJsonExport();
+                toast.success(
+                  `JSON descargado (hasta ${api.EXPORT_MANTENIMIENTOS_LIMIT} registros)`,
+                );
+              } catch (e: unknown) {
+                const msg =
+                  e instanceof api.ApiError ? e.message : "No se pudo exportar";
+                toast.error(msg);
+              } finally {
+                setExporting(null);
+              }
+            }}
+          >
+            {exporting === "json" ? "Exportando…" : "Exportar JSON"}
+          </Button>
+          <Button
+            type="button"
+            variant="outline"
+            size="sm"
+            disabled={exporting !== null || q.isLoading}
+            onClick={async () => {
+              setExporting("csv");
+              try {
+                await api.downloadMantenimientosCsvExport();
+                toast.success(
+                  `CSV descargado (hasta ${api.EXPORT_MANTENIMIENTOS_LIMIT} registros)`,
+                );
+              } catch (e: unknown) {
+                const msg =
+                  e instanceof api.ApiError ? e.message : "No se pudo exportar";
+                toast.error(msg);
+              } finally {
+                setExporting(null);
+              }
+            }}
+          >
+            {exporting === "csv" ? "Exportando…" : "Exportar CSV"}
+          </Button>
+        </div>
       </div>
 
       <Card className="border-dashed bg-muted/30">

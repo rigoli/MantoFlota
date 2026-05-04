@@ -33,6 +33,25 @@ Script: `scripts/seed_users.py` (usuarios + **unidades y mantenimientos demo**).
 
 Si una unidad ya tiene historial, el seed **no duplica** mantenimientos (idempotente).
 
+## Solución de problemas
+
+### `1045 Access denied for user '…'@'localhost'`
+
+Las URLs en `.env` no coinciden con un usuario válido en tu MySQL. Con **MAMP** por defecto suele ser `root` / `root` y puerto **8889**. Copia los valores de [`/.env.example`](./.env.example) en tu `.env` (`DATABASE_URL_ASYNC`, `DATABASE_URL_SYNC`, etc.) y reinicia Uvicorn.
+
+Si usas otro usuario (p. ej. `dev`), créalo en MySQL con los privilegios sobre las bases `mantoflota` y `mantoflota_test`, o ajusta la contraseña para que coincida con la del `.env`.
+
+### Tablas o bases faltantes
+
+Tras corregir credenciales:
+
+```bash
+python scripts/ensure_db.py
+alembic upgrade head
+```
+
+(o `make migrate` desde la raíz del repo).
+
 ## Tests
 
 Requiere MySQL activo en el puerto **8889**.
